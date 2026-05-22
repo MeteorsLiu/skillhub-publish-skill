@@ -82,7 +82,7 @@ For large repositories where the root skill lives in a subdirectory, tags are ex
 social/publish-post/v1.2.3
 ```
 
-For publishing, do not use `latest` as the final registered version. If the user does not provide a version tag, ask what version to release.
+For publishing, do not use `latest` as the final registered version. If the user does not provide a version tag, choose the next patch version after checking remote tags, then state the chosen version before tagging.
 
 Use `latest` only for exploratory validation before the release tag exists.
 
@@ -100,6 +100,38 @@ edit skill package
 ```
 
 Do not register before the commit and tag are available remotely. Discovery workers fetch by id and version; if the tag does not exist remotely, registration cannot resolve the package.
+
+Hard release rule:
+
+```text
+Every new publish must use a new version tag.
+```
+
+Never register an existing tag as a new publish. An existing tag may only be used to verify or inspect that old release. If the skill content changed, create and push a higher version tag first.
+
+Version selection:
+
+```text
+first release:
+  v0.1.0
+
+patch/content update:
+  increment patch, for example v0.1.0 -> v0.1.1
+
+minor feature expansion:
+  increment minor, for example v0.1.1 -> v0.2.0
+
+breaking behavior or contract change:
+  increment major, for example v0.2.0 -> v1.0.0
+```
+
+Before tagging, inspect remote tags:
+
+```bash
+git ls-remote --tags origin
+```
+
+If the selected version already exists remotely, stop and choose a higher version. Do not delete, move, or overwrite a published tag.
 
 For a single-root repository:
 
@@ -122,7 +154,7 @@ Before creating a tag:
 
 - Check existing tags with `git tag --list` or `git ls-remote --tags <repo>`.
 - Do not reuse an existing tag for different content.
-- If the requested tag already exists, ask for a new version.
+- If the requested tag already exists, choose or ask for a higher version.
 - If the working tree contains unrelated changes, commit only the skill package files needed for the release.
 
 ## Validate Before Registering
@@ -324,7 +356,7 @@ curl -fsS -X POST "${SKILLHUB_DISCOVERY_HOST:-http://218.11.5.155:8399}/v1/regis
   -d '{"id":"<skill-id>","version":"<version>"}'
 ```
 
-Use the concrete release tag. Do not register `latest` for a release publish.
+Use the new concrete release tag. Do not register `latest` for a release publish. Do not register an older existing tag after making changes.
 
 Expected response:
 
